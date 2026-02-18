@@ -24,7 +24,7 @@ import { AuthModule } from './auth/auth.module';
       password: process.env.DB_PASS || 'your_password',
       database: process.env.DB_NAME || 'event_management',
       autoLoadEntities: true,
-      synchronize: true, // ❗ false in production
+      synchronize: true, // false in production
     }),
     UsersModule, OrganizersModule, EventsModule, RegistrationModule, AttendanceModule, NotificationsModule, ReportsModule, AuthModule],
   controllers: [AppController],
