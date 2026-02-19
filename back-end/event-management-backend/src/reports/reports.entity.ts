@@ -1,26 +1,34 @@
-// // src/reports/report.entity.ts
-// import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
+import { User } from '../users/users.entity';
+import { Event } from '../events/events.entity';
 
-// import { Event } from '../events/events.entity';
-// import { User } from 'src/users/users.entity';
+@Entity('reports')
+export class Report {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-// @Entity('reports')
-// export class Report {
-//   @PrimaryGeneratedColumn()
-//   id: number;
+  @Column()
+  content: string;
 
-//   @ManyToOne(() => User, user => user.reports, { onDelete: 'CASCADE' })
-//   user: User;
+  @Column({ type: 'text', nullable: true })
+  driveLink: string;
 
-//   @ManyToOne(() => Event, event => event.reports, { onDelete: 'CASCADE' })
-//   event: Event;
 
-//   @Column('text')
-//   reason: string;
+  @ManyToOne(() => User, (user) => user.reports)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-//   @Column({ type: 'enum', enum: ['pending', 'reviewed', 'resolved'], default: 'pending' })
-//   status: string;
+  @ManyToOne(() => Event, (event) => event.reports)
+  @JoinColumn({ name: 'event_id' })
+  event: Event;
 
-//   @CreateDateColumn()
-//   created_at: Date;
-// }
+  @CreateDateColumn()
+  createdAt: Date;
+}

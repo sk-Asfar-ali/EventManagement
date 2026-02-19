@@ -12,6 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = exports.Role = void 0;
 const typeorm_1 = require("typeorm");
 const events_entity_1 = require("../events/events.entity");
+const registration_entity_1 = require("../registration/registration.entity");
+const attendance_entity_1 = require("../attendance/attendance.entity");
+const reports_entity_1 = require("../reports/reports.entity");
+const notifications_entity_1 = require("../notifications/notifications.entity");
 var Role;
 (function (Role) {
     Role["USER"] = "user";
@@ -24,6 +28,10 @@ let User = class User {
     password;
     role;
     events;
+    registrations;
+    attendances;
+    reports;
+    notifications;
 };
 exports.User = User;
 __decorate([
@@ -54,6 +62,22 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => events_entity_1.Event, (event) => event.creator),
     __metadata("design:type", Array)
 ], User.prototype, "events", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => registration_entity_1.Registration, (registration) => registration.user),
+    __metadata("design:type", Array)
+], User.prototype, "registrations", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => attendance_entity_1.Attendance, (attendance) => attendance.user),
+    __metadata("design:type", Array)
+], User.prototype, "attendances", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => reports_entity_1.Report, (report) => report.user),
+    __metadata("design:type", Array)
+], User.prototype, "reports", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => notifications_entity_1.Notification, (notification) => notification.user),
+    __metadata("design:type", Array)
+], User.prototype, "notifications", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)('users')
 ], User);

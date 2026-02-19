@@ -1,25 +1,35 @@
-// // src/notifications/notification.entity.ts
-// import { User } from 'src/users/users.entity';
-// import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
+import { User } from '../users/users.entity';
+import { Event } from '../events/events.entity';
 
+@Entity('notifications')
+export class Notification {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-// @Entity('notifications')
-// export class Notification {
-//   @PrimaryGeneratedColumn()
-//   id: number;
+  @Column()
+  message: string;
 
-//   @ManyToOne(() => User, user => user.notifications, { onDelete: 'CASCADE' })
-//   user: User;
+  @Column({ default: false })
+  isRead: boolean;
 
-//   @Column()
-//   title: string;
+  @ManyToOne(() => User, (user) => user.notifications)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-//   @Column('text')
-//   message: string;
+  @ManyToOne(() => Event, (event) => event.notifications, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'event_id' })
+  event: Event;
 
-//   @Column({ default: false })
-//   is_read: boolean;
-
-//   @CreateDateColumn()
-//   created_at: Date;
-// }
+  @CreateDateColumn()
+  createdAt: Date;
+}

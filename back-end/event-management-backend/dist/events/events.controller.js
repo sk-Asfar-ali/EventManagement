@@ -16,6 +16,9 @@ exports.EventsController = void 0;
 const common_1 = require("@nestjs/common");
 const events_service_1 = require("./events.service");
 const jwt_auth_guard_1 = require("../auth/jwt.auth.guard");
+const roles_guard_1 = require("../auth/roles.guard");
+const users_entity_1 = require("../users/users.entity");
+const roles_decorator_1 = require("../auth/roles.decorator");
 let EventsController = class EventsController {
     eventService;
     constructor(eventService) {
@@ -33,6 +36,8 @@ let EventsController = class EventsController {
 };
 exports.EventsController = EventsController;
 __decorate([
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(users_entity_1.Role.ORGANIZER),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
