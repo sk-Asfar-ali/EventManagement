@@ -1,23 +1,26 @@
-// src/attendance/attendance.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  Column,
+} from 'typeorm';
+import { User } from '../users/users.entity';
+import { Event } from '../events/events.entity';
 
-// import { Event } from '../events/events.entity';
-// import { User } from 'src/users/users.entity';
+@Entity('attendance')
+export class Attendance {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-// @Entity('attendance')
-// export class Attendance {
-//   @PrimaryGeneratedColumn()
-//   id: number;
+  @ManyToOne(() => User, (user) => user.attendances)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-//   @ManyToOne(() => User, user => user.attendances, { onDelete: 'CASCADE' })
-//   user: User;
+  @ManyToOne(() => Event, (event) => event.attendances)
+  @JoinColumn({ name: 'event_id' })
+  event: Event;
 
-//   @ManyToOne(() => Event, event => event.attendances, { onDelete: 'CASCADE' })
-//   event: Event;
-
-//   @Column({ type: 'enum', enum: ['registered', 'cancelled', 'attended'], default: 'registered' })
-//   status: string;
-
-//   @CreateDateColumn()
-//   registered_at: Date;
-// }
+  @Column({ default: false })
+  isPresent: boolean;
+}

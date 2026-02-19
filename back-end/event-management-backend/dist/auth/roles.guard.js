@@ -23,7 +23,10 @@ let RolesGuard = class RolesGuard {
         if (!requiredRoles)
             return true;
         const { user } = context.switchToHttp().getRequest();
-        return requiredRoles.includes(user.role);
+        if (!requiredRoles.includes(user.role)) {
+            throw new common_1.ForbiddenException("Access denied");
+        }
+        return true;
     }
 };
 exports.RolesGuard = RolesGuard;
