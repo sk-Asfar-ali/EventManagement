@@ -1,8 +1,14 @@
 // src/events/event.entity.ts
-import { Attendance } from 'src/attendance/attendance.entity';
-import { Organizer } from 'src/organizers/organizer.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Report } from 'src/reports/reports.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
+import { User } from '../users/users.entity';
+
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn()
@@ -11,30 +17,29 @@ export class Event {
   @Column()
   title: string;
 
-  @Column('text')
+  @Column()
   description: string;
 
-  @Column()
-  location: string;
-
-  @Column()
-  event_date: Date;
-
-  @Column()
-  capacity: number;
-
-  @ManyToOne(() => Organizer, organizer => organizer.events, { onDelete: 'CASCADE' })
-  organizer: Organizer;
-
-  @OneToMany(() => Attendance, attendance => attendance.event)
-  attendances: Attendance[];
-
-  @OneToMany(() => Report, report => report.event)
-  reports: Report[];
+  @ManyToOne(() => User, (user) => user.events, { eager: true })
+  @JoinColumn({ name: 'creator_id' })
+  creator: User;
 
   @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
+  createdAt: Date;
 }
+
+  // @ManyToOne(() => Organizer, organizer => organizer.events, { onDelete: 'CASCADE' })
+  // organizer: Organizer;
+
+  // @OneToMany(() => Attendance, attendance => attendance.event)
+  // attendances: Attendance[];
+
+  // @OneToMany(() => Report, report => report.event)
+  // reports: Report[];
+
+  // @CreateDateColumn()
+  // created_at: Date;
+
+  // @UpdateDateColumn()
+  // updated_at: Date;
+
