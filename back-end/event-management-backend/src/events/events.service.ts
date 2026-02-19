@@ -34,6 +34,25 @@ export class EventsService {
     });
   }
 
+    async findById(eventId: number) {
+  return this.eventRepo.findOneBy({ id: eventId });
+}
+
+
+async deleteById(eventId: number) {
+  const event = await this.eventRepo.findOneBy({ id: eventId });
+
+  if (!event) {
+    throw new NotFoundException('Event not found');
+  }
+
+  await this.eventRepo.delete(eventId);
+
+  return {
+    message: 'Event deleted successfully'
+  };
+}
+
   async update(id: number, data: any, user: User) {
     const event = await this.eventRepo.findOne({
       where: { id },
@@ -54,4 +73,12 @@ export class EventsService {
     Object.assign(event, data);
     return this.eventRepo.save(event);
   }
+//   async findEventsByOrganizer(organizerId: number) {
+//   return this.eventRepo.find({
+//     where: {
+//       creator: { id: organizerId },
+//     },
+//     relations: ['creator'],
+//   });
+// }
 }
