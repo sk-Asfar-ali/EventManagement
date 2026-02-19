@@ -17,48 +17,48 @@ import { Notification } from '../notifications/notifications.entity';
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  title: string;
+  title!: string;
 
   @Column('text')
-  description: string;
+  description!: string;
 
   @Column()
-  venue: string;
+  venue!: string;
 
   @Column({ type: 'datetime' })
-  eventDate: Date;
+  eventDate!: Date;
 
 
   @Column({ type: 'datetime' })
-  registrationClosingDate: Date;
+  registrationClosingDate!: Date;
 
  
   @Column({ type: 'int' })
-  durationInHours: number;
+  durationInHours!: number;
 
   // Created by organizer/user
   @ManyToOne(() => User, (user) => user.events)
   @JoinColumn({ name: 'creator_id' })
-  creator: User;
+  creator!: User;
 
   @OneToMany(() => Registration, (registration) => registration.event)
-  registrations: Registration[];
+  registrations!: Registration[];
 
   @OneToMany(() => Attendance, (attendance) => attendance.event)
-  attendances: Attendance[];
+  attendances!: Attendance[];
 
   @OneToMany(() => Report, (report) => report.event)
-  reports: Report[];
+  reports!: Report[];
 
   @OneToMany(() => Notification, (notification) => notification.event)
-  notifications: Notification[];
+  notifications!: Notification[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
