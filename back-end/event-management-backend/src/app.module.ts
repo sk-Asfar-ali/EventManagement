@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
-import { OrganizersModule } from './organizers/organizers.module';
 import { EventsModule } from './events/events.module';
 import { RegistrationModule } from './registration/registration.module';
 import { AttendanceModule } from './attendance/attendance.module';
@@ -19,14 +18,14 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
-      port: +process.env.DB_PORT || 3306,
+     port: parseInt(process.env.DB_PORT || '3306'),
       username: process.env.DB_USER || 'root',
       password: process.env.DB_PASS || 'your_password',
       database: process.env.DB_NAME || 'event_management',
       autoLoadEntities: true,
-      synchronize: true, // false in production
+      synchronize: true, 
     }),
-    UsersModule, OrganizersModule, EventsModule, RegistrationModule, AttendanceModule, NotificationsModule, ReportsModule, AuthModule],
+    UsersModule, EventsModule, RegistrationModule, AttendanceModule, NotificationsModule, ReportsModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
