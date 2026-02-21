@@ -24,14 +24,10 @@ export class EventsService {
     return this.eventRepo.save(event);
   }
 
-  async findAll(user: User) {
-    if (user.role === Role.ORGANIZER) {
+  async findAll() {
+    
       return this.eventRepo.find();
-    }
-
-    return this.eventRepo.find({
-      where: { creator: { id: user.id } },
-    });
+    
   }
 
     async findById(eventId: number) {
@@ -81,4 +77,10 @@ async deleteById(eventId: number) {
 //     relations: ['creator'],
 //   });
 // }
+
+async findByOrganizerId(id: number) {
+  return this.eventRepo.find({
+    where: { creator: { id } },
+  });
+}
 }
