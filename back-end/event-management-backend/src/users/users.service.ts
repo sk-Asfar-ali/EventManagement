@@ -33,67 +33,69 @@ export class UsersService {
   findById(id: number) {
     return this.userRepo.findOne({ where: { id } });
   }
-
-  // Get Events For Dashboard
-  async getEventsForUser(userId: number): Promise<EventWithUserStatusDto[]> {
+async getEventsForUser(userId: number) {
     const events = await this.eventRepository.find({
       order: { eventDate: 'ASC' },
     });
 
-    const now = new Date();
-    const result: EventWithUserStatusDto[] = [];
+    const registrations = await this.registrationRepository.find({
+      where: {
+        user: { id: userId },
+        status: RegistrationStatus.REGISTERED,
+      },
+      relations: ['event'],
+    });
 
-    for (const event of events) {
+    const registeredEventIds = registrations.map(
+      (r) => r.event.id,
+    );
+
+    const now = new Date();
+
+    return events.map((event) => {
       const eventDate = new Date(event.eventDate);
+      const isRegistered = registeredEventIds.includes(event.id);
 
       if (eventDate <= now) {
-        result.push({
+        return {
           id: event.id,
           title: event.title,
           description: event.description,
           eventDate: event.eventDate,
-          status: UserEventStatus.CLOSED,
+          status: 'CLOSED',
           canCancel: false,
-        });
-        continue;
+        };
       }
 
-      const registration = await this.registrationRepository.findOne({
-        where: {
-          user: { id: userId },
-          event: { id: event.id },
-          status: RegistrationStatus.REGISTERED,
-        },
-      });
-
-      if (!registration) {
-        result.push({
+      if (!isRegistered) {
+        return {
           id: event.id,
           title: event.title,
           description: event.description,
           eventDate: event.eventDate,
-          status: UserEventStatus.NOT_REGISTERED,
+          status: 'NOT_REGISTERED',
           canCancel: false,
-        });
-      } else {
-        const hoursDifference =
-          (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-        result.push({
-          id: event.id,
-          title: event.title,
-          description: event.description,
-          eventDate: event.eventDate,
-          status: UserEventStatus.REGISTERED,
-          canCancel: hoursDifference >= 24,
-        });
+        };
       }
-    }
 
-    return result;
+      const hoursDifference =
+        (eventDate.getTime() - now.getTime()) /
+        (1000 * 60 * 60);
+
+      return {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        eventDate: event.eventDate,
+        status: 'REGISTERED',
+        canCancel: hoursDifference >= 24,
+      };
+    });
   }
 
-  //  Register to Event
+  // =========================================
+  // 2️⃣ Register To Event
+  // =========================================
   async registerToEvent(userId: number, eventId: number) {
     const event = await this.eventRepository.findOne({
       where: { id: eventId },
@@ -103,8 +105,11 @@ export class UsersService {
       throw new NotFoundException('Event not found');
     }
 
-    if (event.eventDate <= new Date()) {
-      throw new BadRequestException('Event already started');
+    // Use registrationClosingDate instead of eventDate
+    if (event.registrationClosingDate <= new Date()) {
+      throw new BadRequestException(
+        'Registration closed',
+      );
     }
 
     const existing = await this.registrationRepository.findOne({
@@ -116,37 +121,52 @@ export class UsersService {
     });
 
     if (existing) {
-      throw new BadRequestException('Already registered');
+      throw new BadRequestException(
+        'Already registered',
+      );
     }
 
-    const registration = this.registrationRepository.create({
-      user: { id: userId },
-      event: { id: eventId },
-    });
+    const registration =
+      this.registrationRepository.create({
+        user: { id: userId },
+        event: { id: eventId },
+        status: RegistrationStatus.REGISTERED,
+      });
 
     return this.registrationRepository.save(registration);
   }
 
-  //  Cancel Registration
-  async cancelRegistration(userId: number, eventId: number) {
-    const registration = await this.registrationRepository.findOne({
-      where: {
-        user: { id: userId },
-        event: { id: eventId },
-        status: RegistrationStatus.REGISTERED,
-      },
-      relations: ['event'],
-    });
+  // =========================================
+  // 3️⃣ Cancel Registration
+  // =========================================
+  async cancelRegistration(
+    userId: number,
+    eventId: number,
+  ) {
+    const registration =
+      await this.registrationRepository.findOne({
+        where: {
+          user: { id: userId },
+          event: { id: eventId },
+          status: RegistrationStatus.REGISTERED,
+        },
+        relations: ['event'],
+      });
 
     if (!registration) {
-      throw new NotFoundException('Registration not found');
+      throw new NotFoundException(
+        'Registration not found',
+      );
     }
 
-    const eventDate = new Date(registration.event.eventDate);
+    const eventDate = new Date(
+      registration.event.eventDate,
+    );
     const now = new Date();
 
     const hoursDifference =
-      (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+      (eventDate.getTime() - now.getTime()) /
+      (1000 * 60 * 60);
 
     if (hoursDifference < 24) {
       throw new BadRequestException(
@@ -154,12 +174,17 @@ export class UsersService {
       );
     }
 
-    registration.status = RegistrationStatus.CANCELLED;
+    registration.status =
+      RegistrationStatus.CANCELLED;
 
-    return this.registrationRepository.save(registration);
+    return this.registrationRepository.save(
+      registration,
+    );
   }
 
-  // ✅ 4️⃣ My Registered Events
+  // =========================================
+  // 4️⃣ My Registered Events
+  // =========================================
   async getMyEvents(userId: number) {
     return this.registrationRepository.find({
       where: {
