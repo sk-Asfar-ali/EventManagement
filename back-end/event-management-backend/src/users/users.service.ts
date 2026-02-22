@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { User } from './users.entity';
 import { Event } from '../events/events.entity';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { Registration } from 'src/registration/registration.entity';
 import { RegistrationStatus } from 'src/registration/registration.entity';
 import { EventWithUserStatusDto, UserEventStatus } from './dto/event-with-user-status.dto';
@@ -19,6 +20,7 @@ export class UsersService {
 
     @InjectRepository(Registration)
     private readonly registrationRepository: Repository<Registration>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   create(data: Partial<User>) {
@@ -99,6 +101,7 @@ async getEventsForUser(userId: number) {
   async registerToEvent(userId: number, eventId: number) {
     const event = await this.eventRepository.findOne({
       where: { id: eventId },
+      relations: ['creator'],
     });
 
     if (!event) {
@@ -133,7 +136,17 @@ async getEventsForUser(userId: number) {
         status: RegistrationStatus.REGISTERED,
       });
 
-    return this.registrationRepository.save(registration);
+    const saved = await this.registrationRepository.save(registration);
+
+    try {
+      const user = await this.userRepo.findOne({ where: { id: userId } });
+      const message = `${user?.name || 'A user'} registered to your event: ${event.title}`;
+      if (event?.creator?.id) {
+        await this.notificationsService?.createNotification(event.creator.id, message, event.id);
+      }
+    } catch (e) {}
+
+    return saved;
   }
 
   // =========================================
@@ -150,7 +163,7 @@ async getEventsForUser(userId: number) {
           event: { id: eventId },
           status: RegistrationStatus.REGISTERED,
         },
-        relations: ['event'],
+        relations: ['event', 'event.creator'],
       });
 
     if (!registration) {
@@ -177,9 +190,17 @@ async getEventsForUser(userId: number) {
     registration.status =
       RegistrationStatus.CANCELLED;
 
-    return this.registrationRepository.save(
-      registration,
-    );
+    const saved = await this.registrationRepository.save(registration);
+
+    try {
+      const user = await this.userRepo.findOne({ where: { id: userId } });
+      const message = `${user?.name || 'A user'} cancelled registration for your event: ${registration.event.title}`;
+      if (registration.event?.creator?.id) {
+        await this.notificationsService?.createNotification(registration.event.creator.id, message, registration.event.id);
+      }
+    } catch (e) {}
+
+    return saved;
   }
 
   // =========================================

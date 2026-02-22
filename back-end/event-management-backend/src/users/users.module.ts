@@ -5,6 +5,7 @@ import { User } from './users.entity';
 import { ReportsModule } from 'src/reports/reports.module';
 import { EventsModule } from 'src/events/events.module';
 import { RegistrationModule } from 'src/registration/registration.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 import { UsersController } from './users.controller';
 
 @Module({
@@ -12,6 +13,7 @@ import { UsersController } from './users.controller';
     TypeOrmModule.forFeature([User]),
     EventsModule,
     RegistrationModule
+    ,NotificationsModule
   ],
   providers: [UsersService],
   controllers: [UsersController],   // ✅ ADD THIS
