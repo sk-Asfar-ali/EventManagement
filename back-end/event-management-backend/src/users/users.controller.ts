@@ -4,20 +4,20 @@ import {
   Post,
   Patch,
   Body,
-  Param,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { CancelEventDto } from './dto/cancel-event.dto';
-import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
+import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
- @Get('events')
+
+  @Get('events')
   async getEvents(@Request() req) {
     return this.usersService.getEventsForUser(req.user.id);
   }

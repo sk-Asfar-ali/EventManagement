@@ -149,9 +149,8 @@ async getEventsForUser(userId: number) {
     return saved;
   }
 
-  // =========================================
-  // 3️⃣ Cancel Registration
-  // =========================================
+  //  Cancel Registration
+
   async cancelRegistration(
     userId: number,
     eventId: number,
@@ -203,16 +202,25 @@ async getEventsForUser(userId: number) {
     return saved;
   }
 
-  // =========================================
-  // 4️⃣ My Registered Events
-  // =========================================
+  
+  // My Registered Events
+
   async getMyEvents(userId: number) {
-    return this.registrationRepository.find({
-      where: {
-        user: { id: userId },
-        status: RegistrationStatus.REGISTERED,
-      },
-      relations: ['event'],
+    const registrations = await this.registrationRepository.find({
+    where: {
+      user: { id: userId },
+      status: RegistrationStatus.REGISTERED,
+    },
+    relations: ["event"],
     });
+
+    return registrations.map((r) => ({
+      id: r.event.id,
+      title: r.event.title,
+      description: r.event.description,
+      eventDate: r.event.eventDate,
+      status: "REGISTERED",
+      canCancel: true,
+    }));
   }
 }
