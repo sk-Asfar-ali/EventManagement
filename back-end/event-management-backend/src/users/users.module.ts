@@ -1,24 +1,19 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
-import { User } from './users.entity';
-import { ReportsModule } from 'src/reports/reports.module';
-import { EventsModule } from 'src/events/events.module';
-import { RegistrationModule } from 'src/registration/registration.module';
-import { NotificationsModule } from 'src/notifications/notifications.module';
 import { UsersController } from './users.controller';
+import { User } from './users.entity';
+import { Event } from '../events/events.entity';
+import { Registration } from '../registration/registration.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
-    EventsModule,
-    RegistrationModule
-    ,NotificationsModule
+    TypeOrmModule.forFeature([User, Event, Registration]),
+    NotificationsModule,
   ],
+  controllers: [UsersController],
   providers: [UsersService],
-  controllers: [UsersController],   // ✅ ADD THIS
   exports: [UsersService],
 })
 export class UsersModule {}
-
-
