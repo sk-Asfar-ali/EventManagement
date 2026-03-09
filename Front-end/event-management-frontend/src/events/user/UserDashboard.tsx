@@ -15,7 +15,13 @@ interface EventItem {
 interface Booking { id: number; event: { id:number; title:string; venue?:string; eventDate:string; }; status: string; }
 interface Notif  { id: number; message: string; isRead: boolean; createdAt: string; event?: {id:number}; }
 
-type Tab = 'browse' | 'bookings' | 'profile' | 'notifications';
+interface AttendanceRecord {
+  eventsAttended: { eventId: number; title: string; date: string }[];
+  eventsMissed: number;
+  attendancePercentage: number;
+}
+
+type Tab = 'browse' | 'bookings' | 'profile' | 'notifications' | 'attendance';
 
 /* ─── Helpers ────────────────────────────────── */
 function fmtDate(d: string) {
@@ -54,6 +60,7 @@ export default function UserDashboard() {
   const [events, setEvents]     = useState<EventItem[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [notifs, setNotifs]     = useState<Notif[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRecord | null>(null);
   const [loading, setLoading]   = useState(false);
   const [actionId, setActionId] = useState<number|null>(null);
   const [toast, setToast]       = useState('');
@@ -85,10 +92,19 @@ export default function UserDashboard() {
     catch {}
   }, []);
 
+  const loadAttendance = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try { setAttendance(await api.get(`/attendance/user/${user.id}`)); }
+    catch {}
+    finally { setLoading(false); }
+  }, [user?.id]);
+
   useEffect(() => {
     if (tab === 'browse')        loadEvents();
     if (tab === 'bookings')      loadBookings();
     if (tab === 'notifications') loadNotifs();
+    if (tab === 'attendance')    loadAttendance();
   }, [tab]);
 
   /* Initial notif count badge */
@@ -172,6 +188,10 @@ export default function UserDashboard() {
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <circle cx="7" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
               <path d="M2 12.5c0-2.761 2.239-4.5 5-4.5s5 1.739 5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>}/>
+          <NavBtn tab="attendance" active={tab} label="Attendance" onClick={setTab} icon={
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7l3.5 3.5L12 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>}/>
         </nav>
 
@@ -412,6 +432,108 @@ export default function UserDashboard() {
                 </div>
               </div>
             </div>
+          </>
+        )}
+
+        {/* ── ATTENDANCE ── */}
+        {tab === 'attendance' && (
+          <>
+            <div className="sec-head">
+              <h2>My Attendance</h2>
+              <p>Your attendance record across all events you've registered for</p>
+            </div>
+
+            {loading ? (
+              <div className="loading-rows">
+                {[1,2,3].map(i=><div key={i} className="skeleton" style={{height:72,animationDelay:`${i*.1}s`}}/>)}
+              </div>
+            ) : !attendance ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">📋</div>
+                <h3>No attendance data yet</h3>
+                <p>Your attendance will appear here after events you've registered for take place</p>
+              </div>
+            ) : (
+              <>
+                {/* Stats */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:14,marginBottom:32}}>
+                  {[
+                    { label:'Events Attended', value: attendance.eventsAttended.length, color:'var(--teal)', bg:'var(--teal-pale)' },
+                    { label:'Events Missed',   value: attendance.eventsMissed,          color:'var(--ember)', bg:'var(--ember-pale)' },
+                    { label:'Attendance Rate', value: `${attendance.attendancePercentage}%`, color: attendance.attendancePercentage >= 75 ? 'var(--green)' : attendance.attendancePercentage >= 50 ? 'var(--amber)' : 'var(--ember)', bg: attendance.attendancePercentage >= 75 ? 'var(--green-pale)' : attendance.attendancePercentage >= 50 ? 'var(--amber-pale)' : 'var(--ember-pale)' },
+                  ].map(s => (
+                    <div key={s.label} className="stat-card" style={{borderTop:`3px solid ${s.color}`}}>
+                      <div className="stat-label">{s.label}</div>
+                      <div className="stat-value" style={{color:s.color,fontSize:'1.8rem'}}>{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Progress bar */}
+                <div style={{
+                  background:'white',border:'1px solid var(--border)',borderRadius:'var(--r)',
+                  padding:'20px 24px',marginBottom:28,
+                }}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}>
+                    <span style={{fontSize:'.83rem',fontWeight:600,color:'var(--ink-2)'}}>Overall Attendance Rate</span>
+                    <span style={{fontSize:'.83rem',fontWeight:700,color:'var(--ink)'}}>{attendance.attendancePercentage}%</span>
+                  </div>
+                  <div style={{height:8,background:'var(--cream-3)',borderRadius:4,overflow:'hidden'}}>
+                    <div style={{
+                      height:'100%',borderRadius:4,
+                      width:`${attendance.attendancePercentage}%`,
+                      background: attendance.attendancePercentage >= 75 ? 'var(--teal)' : attendance.attendancePercentage >= 50 ? 'var(--amber)' : 'var(--ember)',
+                      transition:'width .6s cubic-bezier(.4,0,.2,1)',
+                    }}/>
+                  </div>
+                  <div style={{display:'flex',justifyContent:'space-between',marginTop:6}}>
+                    <span style={{fontSize:'.72rem',color:'var(--ink-4)'}}>0%</span>
+                    <span style={{fontSize:'.72rem',color:'var(--ink-4)'}}>100%</span>
+                  </div>
+                </div>
+
+                {/* Events attended list */}
+                {attendance.eventsAttended.length === 0 ? (
+                  <div className="empty-state" style={{padding:'32px 0'}}>
+                    <div className="empty-state-icon">🎟️</div>
+                    <h3>No events attended yet</h3>
+                    <p>Events you attend will appear here</p>
+                  </div>
+                ) : (
+                  <>
+                    <h3 style={{fontFamily:'var(--serif)',fontSize:'1rem',fontWeight:700,color:'var(--ink)',marginBottom:14}}>
+                      Events Attended ({attendance.eventsAttended.length})
+                    </h3>
+                    <div className="bookings-list">
+                      {attendance.eventsAttended.map((ev, i) => (
+                        <div className="booking-row" key={ev.eventId} style={{animationDelay:`${i*.06}s`}}>
+                          <div className="booking-date-block" style={{background:'var(--teal-pale)'}}>
+                            <div className="booking-date-day" style={{color:'var(--teal)'}}>
+                              {ev.date ? fmtDay(ev.date) : '—'}
+                            </div>
+                            <div className="booking-date-month" style={{color:'var(--teal)'}}>
+                              {ev.date ? fmtMon(ev.date) : ''}
+                            </div>
+                          </div>
+                          <div className="booking-info">
+                            <div className="booking-title">{ev.title}</div>
+                            {ev.date && (
+                              <div className="booking-venue">{fmtDate(ev.date)}</div>
+                            )}
+                          </div>
+                          <span className="event-status-pill pill-reg" style={{flexShrink:0}}>
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{marginRight:4}}>
+                              <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Present
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
           </>
         )}
 
