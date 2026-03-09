@@ -44,7 +44,6 @@ export class EventsController {
   }
 
 
-
   @Put(':id')
   update(
     @Param('id') id: number,
