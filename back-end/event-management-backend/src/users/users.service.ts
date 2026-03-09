@@ -215,4 +215,9 @@ async getEventsForUser(userId: number) {
       relations: ['event'],
     });
   }
+
+  async findByResetToken(token:string): Promise<User | null> {
+   return this.userRepo.findOne({ where: { resetToken: token } });
+  }
+
 }
