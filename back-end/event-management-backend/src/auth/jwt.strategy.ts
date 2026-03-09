@@ -1,13 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import {PassportStrategy} from "@nestjs/passport"
+import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
+
+// Extract the JWT from the httpOnly cookie instead of the Authorization header.
+// This keeps the token out of JavaScript scope entirely.
+function cookieExtractor(req: Request): string | null {
+  return req?.cookies?.access_token ?? null;
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: 'supersecret',
+      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'supersecret',
+      ignoreExpiration: false,
     });
   }
 
