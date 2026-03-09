@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Controller,
   Post,
@@ -25,6 +27,7 @@ export class EventsController {
   @Roles(Role.ORGANIZER)
   @Post()
   create(@Body() body, @Request() req) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return this.eventService.create(body, req.user);
   }
 
@@ -48,12 +51,22 @@ export class EventsController {
     return this.eventService.update(+id, body, req.user);
   }
 
-  // ✅ Organizer gets only his events
+  // Organizer gets only their events
   @UseGuards(RolesGuard)
   @Roles(Role.ORGANIZER)
   @Get('organizer/my')
   getMyEvents(@Request() req) {
     return this.eventService.findByOrganizerId(req.user.id);
   }
-}
 
+  // ✅ NEW: Organizer views registrations for a specific event they own
+  @UseGuards(RolesGuard)
+  @Roles(Role.ORGANIZER)
+  @Get(':eventId/registrations')
+  getEventRegistrations(
+    @Param('eventId', ParseIntPipe) eventId: number,
+    @Request() req,
+  ) {
+    return this.eventService.getEventRegistrations(eventId, req.user.id);
+  }
+}
