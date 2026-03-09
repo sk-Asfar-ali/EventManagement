@@ -56,6 +56,7 @@ export class User {
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 
+<<<<<<< HEAD
   @Column({nullable: true})
   resetToken: string;
 
@@ -64,4 +65,8 @@ export class User {
 
 
 
+=======
+
+
+>>>>>>> 98979a9bf9e2d2d9d5baf51c32515d80b5a501ec
 }
