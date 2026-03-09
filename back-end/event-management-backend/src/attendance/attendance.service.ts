@@ -8,7 +8,10 @@ import { Repository } from 'typeorm';
 import { Attendance } from './attendance.entity';
 import { Event } from '../events/events.entity';
 import { User } from '../users/users.entity';
-import { Registration, RegistrationStatus } from '../registration/registration.entity';
+import {
+  Registration,
+  RegistrationStatus,
+} from '../registration/registration.entity';
 
 @Injectable()
 export class AttendanceService {
@@ -57,11 +60,17 @@ export class AttendanceService {
     const now = new Date();
 
     // Strip time: compare calendar dates
-    const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
-    const today    = new Date(now.getFullYear(),       now.getMonth(),       now.getDate());
+    const eventDay = new Date(
+      eventDate.getFullYear(),
+      eventDate.getMonth(),
+      eventDate.getDate(),
+    );
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (eventDay > today) {
-      throw new BadRequestException('Attendance can only be marked on or after the event date');
+      throw new BadRequestException(
+        'Attendance can only be marked on or after the event date',
+      );
     }
 
     // Upsert: update if record exists, insert if not
@@ -74,8 +83,8 @@ export class AttendanceService {
       .getOne();
 
     const row = existing ?? this.attendanceRepo.create();
-    row.user    = { id: userId } as User;
-    row.event   = { id: eventId } as Event;
+    row.user = { id: userId } as User;
+    row.event = { id: eventId } as Event;
     // BUG FIX: was hardcoded to `true` — now uses the value sent by the caller
     row.isPresent = isPresent !== undefined ? isPresent : true;
 
@@ -102,11 +111,7 @@ export class AttendanceService {
     const rows = await this.registrationRepo
       .createQueryBuilder('r')
       .innerJoin('r.user', 'u')
-      .leftJoin(
-        Attendance,
-        'a',
-        'a.user_id = u.id AND a.event_id = r.event_id',
-      )
+      .leftJoin(Attendance, 'a', 'a.user_id = u.id AND a.event_id = r.event_id')
       .where('r.event_id = :eventId', { eventId })
       .andWhere('r.status = :status', { status: RegistrationStatus.REGISTERED })
       .select([
@@ -121,15 +126,15 @@ export class AttendanceService {
 
     // Normalise isPresent to a real JS boolean regardless of DB driver quirks
     // (MySQL raw queries can return 0/1, "0"/"1", true/false, Buffer, etc.)
-    const users = rows.map(r => ({
-      userId:    Number(r.userId),
-      name:      r.name,
-      email:     r.email,
+    const users = rows.map((r) => ({
+      userId: Number(r.userId),
+      name: r.name,
+      email: r.email,
       isPresent: this.toBoolean(r.isPresent),
     }));
 
-    const totalPresent = users.filter(u => u.isPresent).length;
-    const totalAbsent  = Math.max(totalRegistered - totalPresent, 0);
+    const totalPresent = users.filter((u) => u.isPresent).length;
+    const totalAbsent = Math.max(totalRegistered - totalPresent, 0);
 
     return { eventId, totalRegistered, totalPresent, totalAbsent, users };
   }
@@ -156,10 +161,10 @@ export class AttendanceService {
         ? 0
         : Number(((totalPresent / totalRegistered) * 100).toFixed(2));
 
-    const eventsAttended = presentRows.map(row => ({
-      eventId: row.event?.id   ?? null,
-      title:   row.event?.title ?? null,
-      date:    row.event?.eventDate ?? null,
+    const eventsAttended = presentRows.map((row) => ({
+      eventId: row.event?.id ?? null,
+      title: row.event?.title ?? null,
+      date: row.event?.eventDate ?? null,
     }));
 
     return { userId, eventsAttended, eventsMissed, attendancePercentage };
@@ -183,7 +188,7 @@ export class AttendanceService {
   // Buffer([1])/Buffer([0]) depending on driver version. Normalise them all.
   private toBoolean(value: unknown): boolean {
     if (typeof value === 'boolean') return value;
-    if (Buffer.isBuffer(value))     return value[0] === 1;
+    if (Buffer.isBuffer(value)) return value[0] === 1;
     return Number(value) === 1;
   }
 }
