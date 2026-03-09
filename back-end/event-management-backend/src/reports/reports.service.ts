@@ -108,9 +108,9 @@ export class ReportsService {
       where: { id: eventId, creator: { id: organizerId } },
     });
 
-    // if (!event) {
-    //   throw new NotFoundException('Event not found');
-    // }
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
 
     // Basic Stats
 

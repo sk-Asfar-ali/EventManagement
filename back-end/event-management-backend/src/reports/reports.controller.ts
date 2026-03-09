@@ -15,9 +15,8 @@ export class ReportsController {
 
   @Get()
   async getDashboard(@Req() req: Request) {
-    // const organizerId = (req as any).users.id; // assuming JWT auth
-    // return this.reportsService.getDashboardData(organizerId);
-    return this.reportsService.getDashboardData(1);
+    const organizerId = (req as any).users.id; // assuming JWT auth
+    return this.reportsService.getDashboardData(organizerId);
   }
 
   @Get(':id')
@@ -25,8 +24,7 @@ export class ReportsController {
     @Param('id', ParseIntPipe) eventId: number,
     @Req() req: Request,
   ) {
-    // const organizerId = (req as any).users.id;
-    // return this.reportsService.getEventDetails(eventId, organizerId);
-    return this.reportsService.getEventDetails(1, 1);
+    const organizerId = (req as any).users.id;
+    return this.reportsService.getEventDetails(eventId, organizerId);
   }
 }
