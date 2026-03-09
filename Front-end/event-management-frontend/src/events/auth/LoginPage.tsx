@@ -14,12 +14,18 @@ export default function LoginPage() {
   const location  = useLocation();
   const from = (location.state as any)?.from?.pathname || null;
 
+  // Role-gated routes — sending the wrong role here triggers "unauthorized"
+  const ROLE_ROUTES = ['/home', '/organizer', '/dashboard'];
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
       await login(email, password);
-      // Role-based redirect is handled in App.tsx via RoleRedirect
-      navigate(from || '/', { replace: true });
+      // Ignore stale role-specific `from` paths (e.g. /home saved when an
+      // organizer logs out). Always fall back to / so RoleRedirect picks the
+      // correct dashboard for the newly logged-in role.
+      const safeTo = from && !ROLE_ROUTES.includes(from) ? from : '/';
+      navigate(safeTo, { replace: true });
     } catch (err: any) {
       setError(err.message);
     } finally { setLoading(false); }

@@ -12,7 +12,7 @@ function RoleRedirect() {
   const { user, isAuthenticated, isLoading } = useAuth();
   if (isLoading) return <div className="page-loader"><span className="page-loader-ring"/></div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <Navigate to={user?.role === 'organizer' ? '/organizer' : '/dashboard'} replace />;
+  return <Navigate to={user?.role === 'organizer' ? '/organizer' : '/home'} replace />;
 }
 
 export default function App() {
