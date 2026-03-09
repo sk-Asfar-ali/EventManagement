@@ -39,6 +39,13 @@ export class ReportsService {
       .andWhere('r.status = :status', { status: 'registered' })
       .getCount();
 
+    const totalCancelledRegistrations = await this.registrationRepo
+      .createQueryBuilder('r')
+      .leftJoin('r.event', 'e')
+      .where('e.creator_id = :organizerId', { organizerId })
+      .andWhere('r.status = :status', { status: 'cancelled' })
+      .getCount();
+
     const totalPresent = await this.attendanceRepo
       .createQueryBuilder('a')
       .leftJoin('a.event', 'e')
@@ -52,11 +59,36 @@ export class ReportsService {
       .andWhere('e.eventDate > NOW()')
       .getCount();
 
+    const totalReports = await this.reportRepo
+      .createQueryBuilder('rep')
+      .leftJoin('rep.event', 'e')
+      .where('e.creator_id = :organizerId', { organizerId })
+      .getCount();
+
+    const overallAttendanceRate =
+      totalRegistrations > 0
+        ? Number(((totalPresent / totalRegistrations) * 100).toFixed(1))
+        : 0;
+
+    const eventsWithReports = await this.reportRepo
+      .createQueryBuilder('rep')
+      .leftJoin('rep.event', 'e')
+      .where('e.creator_id = :organizerId', { organizerId })
+      .select('COUNT(DISTINCT rep.event_id)', 'count')
+      .getRawOne<{ count: string }>();
+
+    const eventsWithReportsCount = Number(eventsWithReports?.count ?? 0);
+
     // Event Cards Section 
 
     const eventsRaw = await this.eventRepo
       .createQueryBuilder('e')
-      .leftJoin('e.registrations', 'r')
+      .leftJoin(
+        'e.registrations',
+        'r',
+        'r.status = :regStatus',
+        { regStatus: RegistrationStatus.REGISTERED },
+      )
       .leftJoin('e.attendances', 'a')
       .where('e.creator_id = :organizerId', { organizerId })
       .select([
@@ -95,8 +127,12 @@ export class ReportsService {
       dashboard: {
         totalEvents,
         totalRegistrations,
+        totalCancelledRegistrations,
         totalPresent,
         upcomingEvents,
+        totalReports,
+        attendanceRate: overallAttendanceRate,
+        eventsWithReports: eventsWithReportsCount,
       },
       events,
     };
@@ -104,9 +140,19 @@ export class ReportsService {
 
   async getEventDetails(eventId: number, organizerId: number) {
     //  Event Info 
-    const event = await this.eventRepo.findOne({
-      where: { id: eventId, creator: { id: organizerId } },
-    });
+    const event = await this.eventRepo
+      .createQueryBuilder('e')
+      .select([
+        'e.id',
+        'e.title',
+        'e.description',
+        'e.venue',
+        'e.eventDate',
+        'e.registrationClosingDate',
+        'e.durationInHours'
+      ])
+      .where('e.id = :eventId AND e.creator_id = :organizerId', { eventId, organizerId })
+      .getOne();
 
     if (!event) {
       throw new NotFoundException('Event not found');
@@ -163,11 +209,32 @@ export class ReportsService {
 
     // Reports Submitted 
 
-    const reports = await this.reportRepo.find({
-      where: { event: { id: eventId } },
-      relations: ['user'],
-      order: { createdAt: 'DESC' },
-    });
+    const reports = await this.reportRepo
+      .createQueryBuilder('rep')
+      .leftJoin('rep.user', 'user')
+      .select([
+        'rep.id',
+        'rep.content', 
+        'rep.driveLink',
+        'rep.createdAt',
+        'user.id',
+        'user.name'
+      ])
+      .where('rep.event_id = :eventId', { eventId })
+      .orderBy('rep.createdAt', 'DESC')
+      .getRawMany();
+
+    // Transform raw results to match frontend expected format
+    const transformedReports = reports.map(report => ({
+      id: report.rep_id,
+      content: report.rep_content,
+      driveLink: report.rep_driveLink,
+      createdAt: report.rep_createdAt,
+      user: {
+        id: report.user_id,
+        name: report.user_name
+      }
+    }));
 
     return {
       event,
@@ -180,7 +247,7 @@ export class ReportsService {
       },
       registrationTrend,
       attendanceBreakdown,
-      reports,
+      reports: transformedReports,
     };
   }
 }
