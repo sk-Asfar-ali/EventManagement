@@ -73,12 +73,4 @@ async deleteById(eventId: number) {
     Object.assign(event, data);
     return this.eventRepo.save(event);
   }
-//   async findEventsByOrganizer(organizerId: number) {
-//   return this.eventRepo.find({
-//     where: {
-//       creator: { id: organizerId },
-//     },
-//     relations: ['creator'],
-//   });
-// }
 }

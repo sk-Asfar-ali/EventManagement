@@ -43,12 +43,7 @@ export class EventsController {
     return this.eventService.deleteById(eventId);
   }
 
-// @Get('/organizer/:id')
-// getEventsByOrganizer(
-//   @Param('id', ParseIntPipe) id: number,
-// ) {
-//   return this.eventService.findEventsByOrganizer(id);
-// }
+
 
   @Put(':id')
   update(

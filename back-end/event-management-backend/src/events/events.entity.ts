@@ -39,7 +39,7 @@ export class Event {
   @Column({ type: 'int' })
   durationInHours!: number;
 
-  // Created by organizer/user
+  
   @ManyToOne(() => User, (user) => user.events)
   @JoinColumn({ name: 'creator_id' })
   creator!: User;
