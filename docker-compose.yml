@@ -20,7 +20,7 @@ db:
     retries: 5
   
 backend:
-  image: "${ACR_LOGIN_SERVER}/evently-backend:latest"
+  image: ${ACR_LOGIN_SERVER}/evently-backend:latest
   container_name: evently_backend
   restart: always
   depends_on:
@@ -41,7 +41,7 @@ backend:
     - "3000"
   
 frontend:
-  image: "${ACR_LOGIN_SERVER}/evently-frontend:latest"
+  image: ${ACR_LOGIN_SERVER}/evently-frontend:latest
   container_name: evently_frontend
   restart: always
   depends_on:
@@ -54,7 +54,7 @@ frontend:
 
 volumes:
   db_data:
-  driver: local
+    driver: local
 
 networks:
   evently_net:
