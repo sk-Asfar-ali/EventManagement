@@ -2,11 +2,11 @@ name: Terraform Infrastructure
 
 on:
   push:
-    branches: [main]
+    branches: [deploy]
     paths:
       - 'terraform/**'
   pull_request:
-    branches: [main]
+    branches: [deploy]
     paths:
       - 'terraform/**'
   
