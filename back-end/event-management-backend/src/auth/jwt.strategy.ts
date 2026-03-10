@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'supersecret',
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'yukesh',
       ignoreExpiration: false,
     });
   }
