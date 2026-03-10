@@ -45,7 +45,7 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-wrap">
-      {/* Left */}
+      {/* Left panel(Design)*/}
       <div className="auth-panel">
         <div className="auth-panel-deco"><span/><span/><span/></div>
         <div className="auth-panel-dots">{Array.from({length:21}).map((_,i)=><span key={i}/>)}</div>
@@ -65,7 +65,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Right */}
+      {/* Right panel (Content)*/}
       <div className="auth-form-area">
         <div className="auth-card">
           <div className="auth-card-head">

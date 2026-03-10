@@ -14,16 +14,12 @@ export default function LoginPage() {
   const location  = useLocation();
   const from = (location.state as any)?.from?.pathname || null;
 
-  // Role-gated routes — sending the wrong role here triggers "unauthorized"
   const ROLE_ROUTES = ['/home', '/organizer', '/dashboard'];
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
       await login(email, password);
-      // Ignore stale role-specific `from` paths (e.g. /home saved when an
-      // organizer logs out). Always fall back to / so RoleRedirect picks the
-      // correct dashboard for the newly logged-in role.
       const safeTo = from && !ROLE_ROUTES.includes(from) ? from : '/';
       navigate(safeTo, { replace: true });
     } catch (err: any) {
@@ -33,7 +29,7 @@ export default function LoginPage() {
 
   return (
     <div className="auth-wrap">
-      {/* Left */}
+      {/* Left  Panel (Design)*/}
       <div className="auth-panel">
         <div className="auth-panel-deco">
           <span/><span/><span/>
@@ -57,7 +53,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right */}
+      {/* Right panel (Content)*/}
       <div className="auth-form-area">
         <div className="auth-card">
           <div className="auth-card-head">
@@ -79,10 +75,6 @@ export default function LoginPage() {
             <div className="field">
               <label>Email address</label>
               <div className="field-wrap">
-                <svg className="field-icon" width="15" height="15" viewBox="0 0 15 15" fill="none">
-                  <rect x=".75" y="2.75" width="13.5" height="9.5" rx="1.75" stroke="currentColor" strokeWidth="1.3"/>
-                  <path d=".75 5.5l6.75 3.75 6.75-3.75" stroke="currentColor" strokeWidth="1.3"/>
-                </svg>
                 <input type="email" placeholder="you@example.com" value={email}
                   onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
               </div>
@@ -91,10 +83,6 @@ export default function LoginPage() {
             <div className="field">
               <label>Password</label>
               <div className="field-wrap">
-                <svg className="field-icon" width="15" height="15" viewBox="0 0 15 15" fill="none">
-                  <rect x="2.75" y="6.75" width="9.5" height="6.5" rx="1.25" stroke="currentColor" strokeWidth="1.3"/>
-                  <path d="M4.5 6.75V5a3 3 0 016 0v1.75" stroke="currentColor" strokeWidth="1.3"/>
-                </svg>
                 <input type={showPw?'text':'password'} placeholder="Your password" value={password}
                   onChange={e=>setPassword(e.target.value)} required autoComplete="current-password"/>
                 <button type="button" className="pw-toggle" onClick={()=>setShowPw(v=>!v)}>

@@ -11,10 +11,9 @@ export interface AuthUser {
 
 interface AuthContextType {
   user: AuthUser | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -29,56 +28,61 @@ export interface RegisterData {
 const AuthContext = createContext<AuthContextType | null>(null);
 export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-function parseJwt(token: string): AuthUser | null {
-  try {
-    const decoded = JSON.parse(atob(token.split('.')[1]));
-    return { id: decoded.sub, email: decoded.email, role: decoded.role, name: decoded.name };
-  } catch { return null; }
-}
+// All requests include credentials so the httpOnly cookie is sent automatically.
+const FETCH_OPTS: RequestInit = {
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // On mount, ask the backend who the cookie belongs to.
+  // This replaces the old "parse localStorage token" pattern.
   useEffect(() => {
-    const stored = localStorage.getItem('access_token');
-    if (stored) {
-      const parsed = parseJwt(stored);
-      if (parsed) { setToken(stored); setUser(parsed); }
-      else localStorage.removeItem('access_token');
-    }
-    setIsLoading(false);
+    fetch(`${API_BASE}/auth/me`, { ...FETCH_OPTS, method: 'GET' })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => { if (data) setUser(data); })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
   const login = async (email: string, password: string) => {
     const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      ...FETCH_OPTS,
+      method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'Login failed'); }
-    const { access_token } = await res.json();
-    const parsed = parseJwt(access_token);
-    if (!parsed) throw new Error('Invalid token');
-    localStorage.setItem('access_token', access_token);
-    setToken(access_token); setUser(parsed);
+    if (!res.ok) {
+      const e = await res.json();
+      throw new Error(e.message || 'Login failed');
+    }
+    // Backend sets the httpOnly cookie and returns safe user info in the body
+    const userData: AuthUser = await res.json();
+    setUser(userData);
   };
 
   const register = async (data: RegisterData) => {
     const res = await fetch(`${API_BASE}/auth/register`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      ...FETCH_OPTS,
+      method: 'POST',
       body: JSON.stringify(data),
     });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'Registration failed'); }
+    if (!res.ok) {
+      const e = await res.json();
+      throw new Error(e.message || 'Registration failed');
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    setToken(null); setUser(null);
+  const logout = async () => {
+    // Ask the backend to clear the httpOnly cookie (client JS cannot do this)
+    await fetch(`${API_BASE}/auth/logout`, { ...FETCH_OPTS, method: 'POST' }).catch(() => {});
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isAuthenticated: !!user, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

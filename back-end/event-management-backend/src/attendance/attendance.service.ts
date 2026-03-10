@@ -8,10 +8,7 @@ import { Repository } from 'typeorm';
 import { Attendance } from './attendance.entity';
 import { Event } from '../events/events.entity';
 import { User } from '../users/users.entity';
-import {
-  Registration,
-  RegistrationStatus,
-} from '../registration/registration.entity';
+import { Registration, RegistrationStatus } from '../registration/registration.entity';
 
 @Injectable()
 export class AttendanceService {

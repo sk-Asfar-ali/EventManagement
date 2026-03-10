@@ -10,6 +10,7 @@ import { ReportsModule } from './reports/reports.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
 @Module({
   imports: 
   
@@ -18,14 +19,14 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
-     port: parseInt(process.env.DB_PORT || '3306'),
-      username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || 'your_password',
-      database: process.env.DB_NAME || 'event_management',
+      port: parseInt(process.env.DB_PORT || '3306'),
+      username: process.env.DB_USERNAME || 'root',
+      password: process.env.DB_PASS || 'root',
+      database: process.env.DB_DATABASE || 'eventmanagement',
       autoLoadEntities: true,
       synchronize: true, 
     }),
-    UsersModule, EventsModule, RegistrationModule, AttendanceModule, NotificationsModule, ReportsModule, AuthModule],
+    UsersModule, EventsModule, RegistrationModule, AttendanceModule, NotificationsModule, ReportsModule, AuthModule, MailModule],
   controllers: [AppController],
   providers: [AppService],
 })
