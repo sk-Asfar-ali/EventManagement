@@ -6,7 +6,7 @@ import { JwtAuthGuard } from './jwt.auth.guard';
 const COOKIE_NAME = 'access_token';
 const COOKIE_OPTS = {
   httpOnly: true,           // not accessible via JS — prevents XSS token theft
-  secure: process.env.NODE_ENV === 'production', // HTTPS-only in prod
+  secure: false, // HTTPS-only in prod
   sameSite: 'lax' as const, // CSRF protection
   maxAge: 24 * 60 * 60 * 1000, // 1 day (matches JWT expiry)
   path: '/',
