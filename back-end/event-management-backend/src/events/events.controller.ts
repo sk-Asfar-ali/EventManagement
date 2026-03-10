@@ -28,10 +28,12 @@ export class EventsController {
     return this.eventService.create(body, req.user);
   }
 
-  @Get()
-  findAll() {
-    return this.eventService.findAll();
-  }
+  // @UseGuards(RolesGuard)
+  // @Roles(Role.USER)
+  // @Get()
+  // findAll() {
+  //   return this.eventService.findAll();
+  // }
 
   @Get(':eventId')
   findById(@Param('eventId') eventId: number) {
@@ -48,12 +50,22 @@ export class EventsController {
     return this.eventService.update(+id, body, req.user);
   }
 
-  // ✅ Organizer gets only his events
+  // Organizer gets only their events
   @UseGuards(RolesGuard)
   @Roles(Role.ORGANIZER)
   @Get('organizer/my')
   getMyEvents(@Request() req) {
     return this.eventService.findByOrganizerId(req.user.id);
   }
-}
 
+  // ✅ NEW: Organizer views registrations for a specific event they own
+  @UseGuards(RolesGuard)
+  @Roles(Role.ORGANIZER)
+  @Get(':eventId/registrations')
+  getEventRegistrations(
+    @Param('eventId', ParseIntPipe) eventId: number,
+    @Request() req,
+  ) {
+    return this.eventService.getEventRegistrations(eventId, req.user.id);
+  }
+}

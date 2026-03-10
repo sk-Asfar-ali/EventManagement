@@ -42,6 +42,14 @@ export class UsersService {
   async findById(id: number) {
     return this.userRepo.findOne({ where: { id } });
   }
+<<<<<<< HEAD
+=======
+
+  async getEventsForUser(userId: number) {
+    const events = await this.eventRepository.find({
+      order: { eventDate: 'ASC' },
+    });
+>>>>>>> ded85c15aaca68acee1d12d2ead1c073b08b54be
 
   // Get events with user status
   async getEventsForUser(userId: number) {
@@ -58,15 +66,20 @@ export class UsersService {
       }),
     ]);
 
+<<<<<<< HEAD
     const registeredEventIds = new Set(
       registrations.map((r) => r.event.id),
     );
 
+=======
+    const registeredEventIds = registrations.map((r) => r.event.id);
+>>>>>>> ded85c15aaca68acee1d12d2ead1c073b08b54be
     const now = new Date();
 
     return events.map((event) => {
       const eventDate = new Date(event.eventDate);
 
+<<<<<<< HEAD
       if (eventDate <= now) {
         return {
           ...event,
@@ -93,7 +106,32 @@ export class UsersService {
         ...event,
         status: 'REGISTERED',
         canCancel: hoursDifference >= 24,
+=======
+      // Fields shared across all status shapes — venue and durationInHours
+      // were previously omitted, causing them to show as blank on the frontend.
+      const base = {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        eventDate: event.eventDate,
+        venue: event.venue,
+        durationInHours: event.durationInHours,
+        registrationClosingDate: event.registrationClosingDate,
+>>>>>>> ded85c15aaca68acee1d12d2ead1c073b08b54be
       };
+
+      if (eventDate <= now) {
+        return { ...base, status: 'CLOSED', canCancel: false };
+      }
+
+      if (!isRegistered) {
+        return { ...base, status: 'NOT_REGISTERED', canCancel: false };
+      }
+
+      const hoursDifference =
+        (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      return { ...base, status: 'REGISTERED', canCancel: hoursDifference >= 24 };
     });
   }
 
@@ -124,7 +162,11 @@ export class UsersService {
       throw new BadRequestException('Already registered');
     }
 
+<<<<<<< HEAD
     const registration = this.registrationRepo.create({
+=======
+    const registration = this.registrationRepository.create({
+>>>>>>> ded85c15aaca68acee1d12d2ead1c073b08b54be
       user: { id: userId },
       event: { id: eventId },
       status: RegistrationStatus.REGISTERED,
@@ -153,9 +195,17 @@ export class UsersService {
     return saved;
   }
 
+<<<<<<< HEAD
   // Cancel event registration
   async cancelRegistration(userId: number, eventId: number) {
     const registration = await this.registrationRepo.findOne({
+=======
+  // =========================================
+  // 3️⃣ Cancel Registration
+  // =========================================
+  async cancelRegistration(userId: number, eventId: number) {
+    const registration = await this.registrationRepository.findOne({
+>>>>>>> ded85c15aaca68acee1d12d2ead1c073b08b54be
       where: {
         user: { id: userId },
         event: { id: eventId },
@@ -169,21 +219,25 @@ export class UsersService {
     }
 
     const eventDate = new Date(registration.event.eventDate);
+<<<<<<< HEAD
     const now = new Date();
 
+=======
+>>>>>>> ded85c15aaca68acee1d12d2ead1c073b08b54be
     const hoursDifference =
-      (eventDate.getTime() - now.getTime()) /
-      (1000 * 60 * 60);
+      (eventDate.getTime() - new Date().getTime()) / (1000 * 60 * 60);
 
     if (hoursDifference < 24) {
-      throw new BadRequestException(
-        'Cannot cancel within 24 hours of event',
-      );
+      throw new BadRequestException('Cannot cancel within 24 hours of event');
     }
 
     registration.status = RegistrationStatus.CANCELLED;
+<<<<<<< HEAD
 
     const saved = await this.registrationRepo.save(registration);
+=======
+    const saved = await this.registrationRepository.save(registration);
+>>>>>>> ded85c15aaca68acee1d12d2ead1c073b08b54be
 
     try {
       const user = await this.userRepo.findOne({
@@ -191,12 +245,18 @@ export class UsersService {
       });
 
       const message = `${user?.name || 'A user'} cancelled registration for your event: ${registration.event.title}`;
+<<<<<<< HEAD
 
       if (registration.event.creator?.id) {
         await this.notificationsService.createNotification(
           registration.event.creator.id,
           message,
           registration.event.id,
+=======
+      if (registration.event?.creator?.id) {
+        await this.notificationsService?.createNotification(
+          registration.event.creator.id, message, registration.event.id,
+>>>>>>> ded85c15aaca68acee1d12d2ead1c073b08b54be
         );
       }
     } catch (error) {
@@ -224,5 +284,9 @@ export class UsersService {
       status: 'REGISTERED',
       canCancel: true,
     }));
+  }
+
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.userRepo.findOne({ where: { resetToken: token } });
   }
 }

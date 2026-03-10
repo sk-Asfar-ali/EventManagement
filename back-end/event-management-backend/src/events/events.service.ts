@@ -50,15 +50,20 @@ export class EventsService {
   }
 
   async deleteById(eventId: number) {
-    const event = await this.eventRepo.findOne({ where: { id: eventId }, relations: ['creator'] });
+    const event = await this.eventRepo.findOne({
+      where: { id: eventId },
+      relations: ['creator'],
+    });
 
     if (!event) {
       throw new NotFoundException('Event not found');
     }
 
-    // notify registered users
     try {
-      const regs = await this.registrationRepo.find({ where: { event: { id: eventId }, status: RegistrationStatus.REGISTERED }, relations: ['user'] });
+      const regs = await this.registrationRepo.find({
+        where: { event: { id: eventId }, status: RegistrationStatus.REGISTERED },
+        relations: ['user'],
+      });
       const message = `${event.creator?.name || 'Organizer'} deleted the event: ${event.title}`;
       for (const r of regs) {
         await this.notificationsService.createNotification(r.user.id, message, eventId);
@@ -66,10 +71,7 @@ export class EventsService {
     } catch (e) {}
 
     await this.eventRepo.delete(eventId);
-
-    return {
-      message: 'Event deleted successfully'
-    };
+    return { message: 'Event deleted successfully' };
   }
 
   async update(id: number, data: any, user: User) {
@@ -80,21 +82,18 @@ export class EventsService {
 
     if (!event) throw new NotFoundException();
 
-    if (
-      user.role === Role.USER &&
-      event.creator.id !== user.id
-    ) {
-      throw new ForbiddenException(
-        'You can only edit your own events',
-      );
+    if (user.role === Role.USER && event.creator.id !== user.id) {
+      throw new ForbiddenException('You can only edit your own events');
     }
 
     Object.assign(event, data);
     const saved = (await this.eventRepo.save(event) as unknown) as Event;
 
-    // notify registered users about update
     try {
-      const regs = await this.registrationRepo.find({ where: { event: { id }, status: RegistrationStatus.REGISTERED }, relations: ['user'] });
+      const regs = await this.registrationRepo.find({
+        where: { event: { id }, status: RegistrationStatus.REGISTERED },
+        relations: ['user'],
+      });
       const message = `${user.name || 'Organizer'} updated the event: ${saved.title}`;
       for (const r of regs) {
         await this.notificationsService.createNotification(r.user.id, message, saved.id);
@@ -108,5 +107,39 @@ export class EventsService {
     return this.eventRepo.find({
       where: { creator: { id } },
     });
+  }
+
+  // ✅ NEW: Returns all REGISTERED attendees for an event, only if the requester owns it
+  async getEventRegistrations(eventId: number, requesterId: number) {
+    const event = await this.eventRepo.findOne({
+      where: { id: eventId },
+      relations: ['creator'],
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    if (event.creator.id !== requesterId) {
+      throw new ForbiddenException('You can only view registrations for your own events');
+    }
+
+    const registrations = await this.registrationRepo.find({
+      where: {
+        event: { id: eventId },
+        status: RegistrationStatus.REGISTERED,
+      },
+      relations: ['user'],
+    });
+
+    return registrations.map(r => ({
+      registrationId: r.id,
+      status: r.status,
+      user: {
+        id: r.user.id,
+        name: r.user.name,
+        email: r.user.email,
+      },
+    }));
   }
 }
