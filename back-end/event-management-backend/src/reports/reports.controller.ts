@@ -32,3 +32,4 @@ export class ReportsController {
     return this.reportsService.getEventDetails(eventId, req.user.id);
   }
 }
+
