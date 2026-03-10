@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useApi } from '../hooks/useApi';
-
 import { type EventItem, type Booking, type Notif, type AttendanceRecord, type Tab, userInitials } from './utils/helpers';
 import { Toast, SectionHead } from './components/UI';
 import { Topbar } from './components/Topbar';
