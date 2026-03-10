@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as bcryptjs from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 import { randomBytes } from 'crypto';
 import { MailService } from 'src/mail/mail.service';
@@ -14,7 +14,7 @@ export class AuthService {
   ) {}
 
   async register(data: any) {
-    const hashed = await bcrypt.hash(data.password, 10);
+    const hashed = await bcryptjs.hash(data.password, 10);
     return this.usersService.create({ ...data, password: hashed });
   }
 
@@ -22,7 +22,7 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    const match = await bcrypt.compare(password, user.password);
+    const match = await bcryptjs.compare(password, user.password);
     if (!match) throw new UnauthorizedException('Invalid credentials');
 
     const payload = { sub: user.id, email: user.email, role: user.role };
@@ -60,7 +60,7 @@ export class AuthService {
     if (!user || user.resetTokenExpiry < new Date())
       throw new UnauthorizedException('Invalid or expired token');
 
-    user.password = await bcrypt.hash(password, 10);
+    user.password = await bcryptjs.hash(password, 10);
     user.resetToken = null as any;
     user.resetTokenExpiry = null as any;
     await this.usersService.create(user);
