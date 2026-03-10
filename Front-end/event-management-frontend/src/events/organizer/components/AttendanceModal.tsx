@@ -3,7 +3,7 @@ import { ModalShell, SkeletonRows, EmptyState, AlertBanner } from './UI';
 import { type OrgEvent, type AttendanceSummary, fmtDate, toBoolean, initials, canMarkAttendance } from '../utils/helpers';
 
 interface Props {
-  event: OrgEvent;
+  event: OrgEvent;g
   onClose: () => void;
   api: any;
   showToast: (m: string) => void;
