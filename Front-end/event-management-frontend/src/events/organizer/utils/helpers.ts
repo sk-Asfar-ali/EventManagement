@@ -60,8 +60,6 @@ export interface EventFormData {
 
 export type Tab = 'events' | 'attendees' | 'analytics' | 'reports';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 export const EMPTY_FORM: EventFormData = {
   title:'', description:'', venue:'',
   eventDate:'', registrationClosingDate:'', durationInHours:1,
