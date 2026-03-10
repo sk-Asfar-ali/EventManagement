@@ -28,7 +28,7 @@ export interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 // eslint-disable-next-line react-refresh/only-export-components
-export const API_BASE = import.meta.env.VITE_API_URL || " " ;
+export const API_BASE = import.meta.env.VITE_API_URL || "" ;
 
 // All requests include credentials so the httpOnly cookie is sent automatically.
 const FETCH_OPTS: RequestInit = {
