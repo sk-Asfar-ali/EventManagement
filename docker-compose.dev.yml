@@ -1,0 +1,20 @@
+version : "3.9"
+
+services:  
+  db:
+    ports:
+      -"33306:3306"
+  
+  backend:
+    build:
+      context: ./back-end/event-management-backend
+      dockerfile: Dockerfile
+    image: evently-backend:dev
+    environment:
+      - NODE_ENV=developement
+    
+  frontend:
+    build:
+      context: ./front-end/event-management-frontend
+      dockerfile: Dockerfile
+    image: evently-frontend:dev

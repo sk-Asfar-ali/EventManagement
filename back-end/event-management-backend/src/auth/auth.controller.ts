@@ -19,6 +19,14 @@ export class AuthController {
   @Post('register')
   register(@Body() body: any) {
     return this.authService.register(body);
+
+
+
+
+
+
+
+    
   }
 
   @Post('login')

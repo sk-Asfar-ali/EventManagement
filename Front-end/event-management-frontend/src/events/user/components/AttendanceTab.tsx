@@ -13,7 +13,7 @@ export function AttendanceTab({ attendance, loading }: Props) {
       desc="Your attendance will appear here after events you've registered for take place" />
   );
 
-  const { eventsAttended, eventsMissed, attendancePercentage } = attendance;
+  const { eventsAttended,  attendancePercentage } = attendance;
   const rateColor = attendanceColor(attendancePercentage);
 
   return (

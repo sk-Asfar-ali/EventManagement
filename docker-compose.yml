@@ -1,0 +1,61 @@
+version : "3.9"
+
+db:
+  image : mysql:8.0
+  container_name: evently_db
+  restart: always
+  environment:
+    MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    MYSQL_DATABASE: ${DB_NAME}
+    MYSQL_USER: ${DB_USER}
+    MYSQL_PASSWORD: ${DB_PASSWORD}
+  volumes:
+    - db_data:/var/lib/mysql
+  networks:
+    - evently_net
+  healthcheck:
+    test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+  
+backend:
+  image:${ACR_LOGIN_SERVER}/evently-backend:latest
+  container_name: evently_backend
+  restart: always
+  depends_on:
+    db:
+      condition: service_healthy
+  environment:
+    - NODE_ENV=production
+    - DB_HOST=db
+    - DB_USER=${DB_USER}
+    - DB_PASSWORD=${DB_PASSWORD}
+    - DB_NAME=${DB_NAME}
+    - DB_PORT=3306
+    - JWT_SECRET=${JWT_SECRET}
+    - FRONTEND_URL=${FRONTEND_URL}
+  networks:
+    - evently_net
+  expose:
+    - "3000"
+  
+frontend:
+  image:${ACR_LOGIN_SERVER}/evently-frontend:latest
+  container_name: evently_frontend
+  restart: always
+  depends_on:
+    - backend
+
+  networks:
+    - evently_net
+  ports:
+    - "80:80"
+
+volumes:
+  db_data:
+  driver: local
+
+networks:
+  evently_net:
+    driver: bridge

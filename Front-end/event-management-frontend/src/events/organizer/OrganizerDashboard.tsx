@@ -119,7 +119,7 @@ export default function OrganizerDashboard() {
       <div className="od-content">
         <header className="od-topbar">
           <div className="od-topbar-title">
-            <h1>{{ events:'My Events', attendees:'Attendees', reports:'Reports' }[tab]}</h1>
+            <h1>{{ events:'My Events', attendees:'Attendees', reports:'Reports' , analytics:" "}[tab]}</h1>
             <span>{TAB_SUBTITLES[tab]}</span>
           </div>
           <div className="od-topbar-right">
