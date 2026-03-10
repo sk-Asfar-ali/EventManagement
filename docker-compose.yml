@@ -56,6 +56,8 @@ services:
       - "80:80"
     networks:
       - evently_net
+    environment:
+      - VITE_API_URL = http://backend:3000
 
 
 volumes:
