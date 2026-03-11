@@ -34,6 +34,7 @@ jobs:
           context: ./back-end/event-management-backend
           file: ./back-end/event-management-backend/Dockerfile
           push: true
+          no-cache : true
           tags: |
             ${{ secrets.ACR_LOGIN_SERVER }}/evently-backend:latest
             ${{ secrets.ACR_LOGIN_SERVER }}/evently-backend:${{ github.sha }}
