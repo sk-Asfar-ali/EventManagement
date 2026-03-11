@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 
 // Extract the JWT from the httpOnly cookie instead of the Authorization header.
 // This keeps the token out of JavaScript scope entirely.
-function cookieExtractor(req: Request): string | null {
+function cookieExtractor(req: any): string | null {
   return req?.cookies?.access_token ?? null;
 }
 

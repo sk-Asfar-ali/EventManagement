@@ -28,8 +28,6 @@ export class EventsController {
     return this.eventService.create(body, req.user);
   }
 
-  @UseGuards(RolesGuard)
-  @Roles(Role.USER)
   @Get()
   findAll() {
     return this.eventService.findAll();
