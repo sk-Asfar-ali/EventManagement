@@ -1,0 +1,76 @@
+locals {
+ 
+  cloud_init = <<-CLOUDINIT
+    #cloud-config
+    package_update: true
+    package_upgrade: true
+
+    packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+
+    runcmd:
+
+      - curl -fsSL https://get.docker.com | sh
+      - usermod -aG docker ${var.admin_username}
+      - systemctl enable docker
+      - systemctl start docker
+
+           - mkdir -p /usr/local/lib/docker/cli-plugins
+      - curl -SL https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+      - chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+
+      - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+
+      - mkdir -p /opt/evently
+
+ 
+      - |
+        cat > /opt/evently/deploy.sh << 'EOF'
+        #!/bin/bash
+set -e
+
+KV="evently-prod-kv"
+
+echo "Logging in with managed identity..."
+az login --identity --allow-no-subscriptions
+
+echo "Fetching secrets..."
+
+DB_ROOT=$(az keyvault secret show --vault-name $KV --name "DB-ROOT-PASSWORD" --query value -o tsv)
+DB_NAME=$(az keyvault secret show --vault-name $KV --name "DB-NAME" --query value -o tsv)
+DB_USER=$(az keyvault secret show --vault-name $KV --name "DB-USER" --query value -o tsv)
+DB_PASS=$(az keyvault secret show --vault-name $KV --name "DB-PASSWORD" --query value -o tsv)
+JWT=$(az keyvault secret show --vault-name $KV --name "JWT-SECRET" --query value -o tsv)
+FRONTEND=$(az keyvault secret show --vault-name $KV --name "FRONTEND-URL" --query value -o tsv)
+ACR=$(az keyvault secret show --vault-name $KV --name "ACR-LOGIN-SERVER" --query value -o tsv 2>/dev/null || echo "eventlyprodacr.azurecr.io")
+
+echo "Writing .env..."
+cat > /opt/evently/.env << EOF
+ACR_LOGIN_SERVER=$ACR
+DB_ROOT_PASSWORD=$DB_ROOT
+DB_NAME=$DB_NAME
+DB_USER=$DB_USER
+DB_PASSWORD=$DB_PASS
+JWT_SECRET=$JWT
+FRONTEND_URL=$FRONTEND
+EOF
+
+echo "Contents of .env:"
+
+
+echo "Starting containers..."
+cd /opt/evently
+docker compose down
+
+docker compose up -d
+
+echo "Done"
+      - chmod +x /opt/evently/deploy.sh
+  CLOUDINIT
+}
